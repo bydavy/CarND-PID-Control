@@ -7,6 +7,8 @@
 // for convenience
 using json = nlohmann::json;
 
+#define RESET_ON_CRASH 1
+
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
@@ -50,6 +52,14 @@ int main()
           double cte = std::stod(j[1]["cte"].get<std::string>());
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
+
+#if RESET_ON_CRASH
+          // Reset simulator if outside of track
+          if (abs(cte) > 2.2) {
+            std::string reset_msg = "42[\"reset\",{}]";
+            ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
+          }
+#endif
 
           pid.UpdateError(cte);
 
